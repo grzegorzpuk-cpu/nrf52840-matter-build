@@ -44,12 +44,28 @@ jobs:
       - name: Initialize West
         run: |
           python3 -m pip install west
+          echo "=== Sprawdzanie rozmiaru przed operacjami ==="
+          du -sh sdk 2>/dev/null || echo "sdk directory missing"
+          
           if [ ! -d "sdk/.west" ]; then
-            west init -m https://github.com/nrfconnect/sdk-nrf --mr ${{ github.event.inputs.sdk_version || 'v3.1.1' }} sdk
+            echo "Cache miss: initializing SDK from scratch..."
+            mkdir -p sdk
+            cd sdk
+            west init -m https://github.com/nrfconnect/sdk-nrf --mr ${{ github.event.inputs.sdk_version || 'v3.1.1' }}
+            west update --narrow -o=--depth=1
+          else
+            echo "Cache hit: checking for updates (fast)..."
+            cd sdk
+            # Próbujemy najpierw bez pobierania (tylko lokalnie)
+            west update --narrow -o=--depth=1 --no-fetch || {
+              echo "Local update failed, fetching missing data..."
+              west update --narrow -o=--depth=1
+            }
           fi
-          cd sdk
-          west update --narrow -o=--depth=1
+          
           west zephyr-export
+          echo "=== Rozmiar SDK po operacjach ==="
+          du -sh .
 
       - name: Export Source Code to Repo
         id: export-code
