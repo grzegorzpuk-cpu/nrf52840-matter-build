@@ -54,23 +54,29 @@ jobs:
       - name: Export Source Code to Repo
         id: export-code
         run: |
-          # Jeśli kod jeszcze nie istnieje w repozytorium, skopiuj go z SDK nRF
+          # Jeśli kod jeszcze nie istnieje w repozytorium (w folderze project), skopiuj go z SDK nRF
           if [ ! -d "project/samples" ]; then
+            echo "Exporting samples from SDK..."
             mkdir -p project/samples
             cp -r sdk/nrf/samples/matter/light_bulb project/samples/
-            echo "exported=true" >> $GITHUB_OUTPUT
-          else
-            echo "exported=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Commit and Push Exported Code
-        if: steps.export-code.outputs.exported == 'true'
-        run: |
+          
           cd project
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add samples/
-          git commit -m "Bootstrap: Exported light_bulb sample from SDK"
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            echo "exported=false" >> $GITHUB_OUTPUT
+          else
+            git commit -m "Bootstrap: Exported light_bulb sample from SDK"
+            echo "exported=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push Exported Code
+        if: steps.export-code.outputs.exported == 'true'
+        run: |
+          cd project
           git pull --rebase origin main
           git push origin main
         env:
@@ -79,8 +85,8 @@ jobs:
       - name: Build Matter Sample (Local Source)
         working-directory: sdk
         run: |
-          # Budujemy z lokalnego źródła wewnątrz repozytorium
-          west build -b nrf52840dk/nrf52840 ../project/samples/light_bulb
+          # Używamy -p (pristine), aby wyczyścić stare ścieżki z builda
+          west build -p always -b nrf52840dk/nrf52840 ../project/samples/light_bulb
 
       - name: Collect Artifacts
         if: success()
