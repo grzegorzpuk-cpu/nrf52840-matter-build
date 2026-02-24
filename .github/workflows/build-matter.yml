@@ -47,10 +47,35 @@ jobs:
           west update --narrow -o=--depth=1
           west zephyr-export
 
-      - name: Build Matter Sample
+      - name: Export Source Code to Repo
+        id: export-code
+        run: |
+          # Jeśli kod jeszcze nie istnieje w repozytorium, skopiuj go z SDK nRF
+          if [ ! -d "project/samples" ]; then
+            mkdir -p project/samples
+            cp -r sdk/nrf/samples/matter/light_bulb project/samples/
+            echo "exported=true" >> $GITHUB_OUTPUT
+          else
+            echo "exported=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and Push Exported Code
+        if: steps.export-code.outputs.exported == 'true'
+        run: |
+          cd project
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add samples/
+          git commit -m "Bootstrap: Exported light_bulb sample from SDK"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Matter Sample (Local Source)
         working-directory: sdk
         run: |
-          west build -b nrf52840dk/nrf52840 nrf/${{ github.event.inputs.sample || 'samples/matter/light_bulb' }}
+          # Budujemy z lokalnego źródła wewnątrz repozytorium
+          west build -b nrf52840dk/nrf52840 ../project/samples/light_bulb
 
       - name: Collect Artifacts
         if: success()
