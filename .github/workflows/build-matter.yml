@@ -41,9 +41,7 @@ jobs:
         run: |
           python3 -m pip install west
           if [ ! -d "sdk/.west" ]; then
-            mkdir -p sdk
-            cd sdk
-            west init -m https://github.com/nrfconnect/sdk-nrf --mr ${{ github.event.inputs.sdk_version || 'v3.1.1' }}
+            west init -m https://github.com/nrfconnect/sdk-nrf --mr ${{ github.event.inputs.sdk_version || 'v3.1.1' }} sdk
           fi
           cd sdk
           west update --narrow -o=--depth=1
