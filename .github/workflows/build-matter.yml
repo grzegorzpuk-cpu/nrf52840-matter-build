@@ -20,6 +20,9 @@ jobs:
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/nrfconnect/sdk-nrf-toolchain:${{ github.event.inputs.sdk_version || 'v3.1.1' }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Checkout
@@ -29,6 +32,7 @@ jobs:
 
       - name: Initialize West
         run: |
+          python3 -m pip install west
           mkdir sdk
           cd sdk
           west init -m https://github.com/nrfconnect/sdk-nrf --mr ${{ github.event.inputs.sdk_version || 'v3.1.1' }}
