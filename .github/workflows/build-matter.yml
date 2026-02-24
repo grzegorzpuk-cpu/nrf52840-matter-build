@@ -42,7 +42,7 @@ jobs:
       - name: Build Matter Sample
         working-directory: sdk
         run: |
-          west build -b nrf52840dk nrf/${{ github.event.inputs.sample || 'samples/matter/light_bulb' }}
+          west build -b nrf52840dk/nrf52840 nrf/${{ github.event.inputs.sample || 'samples/matter/light_bulb' }}
 
       - name: Collect Artifacts
         if: success()
