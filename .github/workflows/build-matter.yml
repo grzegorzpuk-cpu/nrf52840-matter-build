@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: nordicsemi/nrfconnect-sdk:${{ github.event.inputs.sdk_version || 'v2.9.0' }}
+      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:${{ github.event.inputs.sdk_version || 'v2.9.0' }}
 
     steps:
       - name: Checkout
