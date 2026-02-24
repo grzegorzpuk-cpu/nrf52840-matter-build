@@ -56,9 +56,14 @@ jobs:
         if: success()
         run: |
           mkdir -p artifacts
-          find sdk/build/zephyr -name "zephyr.hex" -exec cp {} artifacts/matter_light_bulb.hex \;
-          find sdk/build/zephyr -name "zephyr.bin" -exec cp {} artifacts/matter_light_bulb.bin \;
-          find sdk/build/zephyr -name "zephyr.elf" -exec cp {} artifacts/matter_light_bulb.elf \;
+          # Szukamy merged.hex (finalny obraz z bootloaderem) oraz zephyr.hex/bin/elf
+          find sdk/build -name "merged.hex" -exec cp {} artifacts/matter_full.hex \;
+          find sdk/build -name "zephyr.hex" -exec cp {} artifacts/matter_app.hex \;
+          find sdk/build -name "zephyr.bin" -exec cp {} artifacts/matter_app.bin \;
+          find sdk/build -name "zephyr.elf" -exec cp {} artifacts/matter_app.elf \;
+          # Dodatkowo kopiujemy matter.ota jeśli istnieje
+          find sdk/build -name "*.ota" -exec cp {} artifacts/ \; || true
+          ls -R artifacts
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
