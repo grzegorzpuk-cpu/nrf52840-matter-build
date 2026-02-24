@@ -41,7 +41,17 @@ jobs:
           path: sdk
           key: nrf-sdk-${{ github.event.inputs.sdk_version || 'v3.1.1' }}
 
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-matter-${{ github.event.inputs.sdk_version || 'v3.1.1' }}-${{ github.run_id }}
+          restore-keys: |
+            ccache-matter-${{ github.event.inputs.sdk_version || 'v3.1.1' }}-
+
       - name: Initialize West
+        env:
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
         run: |
           python3 -m pip install west
           echo "=== Sprawdzanie rozmiaru przed operacjami ==="
@@ -100,9 +110,21 @@ jobs:
 
       - name: Build Matter Sample (Local Source)
         working-directory: sdk
+        env:
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
         run: |
+          # Ustawienie ccache dla CMake wewnątrz Zephyr
+          export CMAKE_C_COMPILER_LAUNCHER=ccache
+          export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          
+          # Ustawienia ccache
+          ccache -M 500M
+          ccache -s
+          
           # Używamy -p (pristine), aby wyczyścić stare ścieżki z builda
           west build -p always -b nrf52840dk/nrf52840 ../project/samples/light_bulb
+          
+          ccache -s
 
       - name: Collect Artifacts
         if: success()
