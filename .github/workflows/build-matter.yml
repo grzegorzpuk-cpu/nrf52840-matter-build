@@ -6,7 +6,7 @@ on:
       sdk_version:
         description: 'NCS SDK Version'
         required: true
-        default: 'v2.9.0'
+        default: 'v3.1.1'
       sample:
         description: 'Sample to build'
         required: true
@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:${{ github.event.inputs.sdk_version || 'v2.9.0' }}
+      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:${{ github.event.inputs.sdk_version || 'v3.1.1' }}
 
     steps:
       - name: Checkout
@@ -31,7 +31,7 @@ jobs:
         run: |
           mkdir sdk
           cd sdk
-          west init -m https://github.com/nrfconnect/sdk-nrf --mr ${{ github.event.inputs.sdk_version || 'v2.9.0' }}
+          west init -m https://github.com/nrfconnect/sdk-nrf --mr ${{ github.event.inputs.sdk_version || 'v3.1.1' }}
           west update --narrow -o=--depth=1
           west zephyr-export
 
