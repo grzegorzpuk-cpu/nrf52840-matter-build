@@ -49,6 +49,14 @@ jobs:
           restore-keys: |
             ccache-matter-${{ github.event.inputs.sdk_version || 'v3.1.1' }}-
 
+      - name: Cache Build
+        uses: actions/cache@v4
+        with:
+          path: sdk/build
+          key: build-matter-${{ github.event.inputs.sdk_version || 'v3.1.1' }}-${{ github.run_id }}
+          restore-keys: |
+            build-matter-${{ github.event.inputs.sdk_version || 'v3.1.1' }}-
+
       - name: Initialize West
         env:
           CCACHE_DIR: ${{ github.workspace }}/.ccache
@@ -121,8 +129,9 @@ jobs:
           ccache -M 500M
           ccache -s
           
-          # Używamy -p (pristine), aby wyczyścić stare ścieżki z builda
-          west build -p always -b nrf52840dk/nrf52840 ../project/samples/light_bulb
+          # Budujemy przyrostowo (bez -p always)
+          # Jeśli katalog build został przywrócony z cache, west build skompiluje tylko zmiany.
+          west build -b nrf52840dk/nrf52840 ../project/samples/light_bulb
           
           ccache -s
 
